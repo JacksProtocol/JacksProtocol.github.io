@@ -11,8 +11,6 @@
     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
     })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
     
-
-window.ga_debug = {trace: true};
 ga('create', 'UA-12345-6', 'auto');
 
 //Função para enviar um evento toda vez que o botão contato for pressionado. 
