@@ -9,7 +9,7 @@
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-    })(window,document,'script','https://www.google-analytics.com/analytics_debug.js','ga');
+    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
     
 
 window.ga_debug = {trace: true};
@@ -17,7 +17,6 @@ ga('create', 'UA-12345-6', 'auto');
 
 //Função para enviar um evento toda vez que o botão contato for pressionado. 
 function sendContactEvent(){
-    console.log('Evento do botão contato disparado.');
     ga('send', {
         hitType: 'event',
         eventCategory: 'menu',
@@ -28,7 +27,6 @@ function sendContactEvent(){
 
 //Função para enviar um evento toda vez que o botão download for pressionado. 
 function sendDownloadEvent(){
-    console.log('Evento do botão download disparado.');
     ga('send', {
         hitType: 'event',
         eventCategory: 'menu',
@@ -51,33 +49,15 @@ function sendAnaliseEvent(){
 //Função para enviar o hit de evento que um Input do formulário de contato foi alterado. 
 function sendContatoFormEvent(){
     var elementInput = this;
-    /*Verifica se o elemento atual é o botão de enviar, se for será enviado com um padrão de hit 
-    sem a utilização de variável.*/
-    if(elementInput.id != ""){
-        ga('send', {
-            hitType: 'event',
-            eventCategory: 'contato',
-            eventAction: elementInput.id,
-            eventLabel: 'preencheu'
-        });
-    } else {
-        ga('send', {
-            hitType: 'event',
-            eventCategory: 'contato',
-            eventAction: 'enviado',
-            eventLabel: 'enviado'
-        });
-    }
-    
+    ga('send', {
+        hitType: 'event',
+        eventCategory: 'contato',
+        eventAction: elementInput.id,
+        eventLabel: 'preencheu'
+    });  
 }
 
 //Área de execução em escopo geral.
-
-/*
-Precisamos que, em todas as páginas, seja enviado uma Visualização de Página. Ela não
-deverá possuir configuração nenhuma, apenas enviando uma visualização padrão de acordo
-com a documentação. - OK
-*/
 
 /*Como o arquivo tagueamento.js está em todas as páginas, o comando send simples será 
 enviado através do comando abaixo. */
@@ -95,19 +75,49 @@ document.getElementById('download').addEventListener('click', sendDownloadEvent)
 via JS, dessa forma o que foi pensado foi a inserção dos eventos nos botões utilizando o solicitado
 e feito manipulação dos dados via JQuery. [Imaginando que este seja um desafio como se fosse um requisito
 do cliente]*/
-let analiseButtons = document.getElementsByClassName('card');
-for(index = 0; index < analiseButtons.length; index++){
-    analiseButtons[index].addEventListener("click", sendAnaliseEvent);
+if(document.getElementsByClassName('card').length != 0){
+    let analiseButtons = document.getElementsByClassName('card');
+    for(index = 0; index < analiseButtons.length; index++){
+        analiseButtons[index].addEventListener("click", sendAnaliseEvent);
+    }
 }
 
-/*Inserção do event lister em todos os campos de Input do formulário do contato. [-1 para não adicionar o evento ao
-botão de enviar]*/
-let contatoForm = document.getElementsByClassName('contato');
-for(index = 0; index < contatoForm[0].length; index++){
-    if(index != 4)
+//Inserção do event lister em todos os campos de Input do formulário do contato.
+if(document.getElementsByClassName('contato').length != 0){
+    let contatoForm = document.getElementsByClassName('contato');
+
+    /*
+        Simulando um envio de formulário em uma aplicação de produção, inserir uma callback 
+        para garantir que o hit não bloqueie nenhuma funcionalidade do envio do formulário
+        neste sistema, caso ocorra alguma falha com a lib.
+    */
+    contatoForm[0].addEventListener('submit', function(event){
+        event.preventDefault();
+
+        setTimeout(submitForm, 2000);
+
+        var formSubmitted = false;
+      
+        function submitForm() {
+          if (!formSubmitted) {
+            formSubmitted = true;
+            contatoForm[0].submit();
+          }
+        }
+    
+        ga('send', {
+            hitType: 'event',
+            eventCategory: 'contato',
+            eventAction: 'enviado',
+            eventLabel: 'enviado',
+            hitCallback: submitForm
+        });
+    });
+
+    //O index está sendo subtraido por 1 para que não seja inserido evento no botão "enviar".
+    for(index = 0; index < contatoForm[0].length - 1; index++){
         contatoForm[0][index].addEventListener("change", sendContatoFormEvent);
-    else
-        contatoForm[0][index].addEventListener("submit", sendContatoFormEvent);
+    }
 }
 
 //Fim da área de execução de escopo geral.
